@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/redux/store';
 import { addUserToDb } from '@/app/database/actions';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const SignUp_Form = () => {
 
@@ -18,6 +20,17 @@ const SignUp_Form = () => {
     const [password, setPassword] = useState('');
     const [cf_password, setCf_password] = useState('');
     let count = 0
+    const router = useRouter();
+
+    
+    useEffect(()=>{
+        if(sessionStorage.getItem('user')!==null && sessionStorage.getItem('user')!==undefined && !userState.Verifysuccess){        
+            router.push('/redirect');
+           }
+        console.log('Already redirect!');
+        
+     },[])
+
 
     // redux
     const onClickChange = ()=>{
@@ -33,8 +46,6 @@ const SignUp_Form = () => {
             count ++;
         }        
     }
-    console.log(useAppSelector((state)=>state.user));
-
 
 
     return ( 

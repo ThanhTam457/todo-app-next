@@ -6,8 +6,7 @@ import Button from 'react-bootstrap/Button';
 import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "@/app/redux/store";
-import { getAllTodoTasksByUserId, addTodoTask, verifyToken, deleteTodoTaskById } from "@/app/database/actions";
-import jwt from 'jsonwebtoken';
+import { getAllTodoTasksByUserId, addTodoTask, verifyToken } from "@/app/database/actions";
 import jwt_decode from "jwt-decode";
 import { useRouter } from "next/navigation";
 import TaskList from "./TaskList";
@@ -23,49 +22,11 @@ const Dashboard = () => {
     const router = useRouter();
     
     const dispatch = useAppDispatch();
-    const SECRET_KEY = 'thanhtam';    
     const userState = useAppSelector(state=>state.user);
     // console.log(userState);
     const taskState = useAppSelector(state => state.task);
     // console.log(taskState);
     const [currentUserId, setCurrentUserId] = useState(0);
-    
-    useEffect(()=>{
-        const token = sessionStorage.getItem("user");
-        if(!token){
-            return;
-        }else{
-            dispatch(verifyToken(token) as any);
-        }
-    },[])
-    
-    useEffect(()=>{
-        if(userState.Verifysuccess == "error"){
-            router.push("/redirect");
-        }else if(userState.Verifysuccess == "success"){
-            const token = sessionStorage.getItem("user");
-            if(!token){return;}
-            const decoded = jwt_decode(token);
-            if(decoded){
-                setCurrentUserId(Number(decoded.id));
-        }
-        try{
-            console.log(`current userId: `, currentUserId )
-            dispatch(getAllTodoTasksByUserId(currentUserId));   
-        } catch(err){
-            console.log("error");
-        }
-        }
-    }, [userState.Verifysuccess, currentUserId])
-
-
-
-    useEffect(()=>{
-        console.log("task state list update");
-    },[taskState.tasks])
-
-    
-
     
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
@@ -75,6 +36,39 @@ const Dashboard = () => {
     // const reload=()=>window.location.reload();
     const [task, setTask] = useState('');
     
+    
+    useEffect(()=>{
+        const token = sessionStorage.getItem("user");
+        if(!token){
+            return;
+        }else{
+            dispatch(verifyToken(token) as any);            
+        }
+    },[])
+    
+    useEffect(()=>{
+        if(userState.Verifysuccess == "error"){
+            router.push("/redirect");
+        }else if(userState.Verifysuccess == "success"){
+            const token = sessionStorage.getItem("user");
+            const decoded = jwt_decode(String(token));
+            if(decoded){
+                const new_currentId = Number(decoded.id);
+                console.log('use temp', new_currentId);
+                setCurrentUserId(new_currentId);
+            }
+            try{
+                console.log(`current userId: `, currentUserId )                 
+            } catch(err){
+                console.log("error");
+            }
+        }
+    }, [userState.Verifysuccess, currentUserId])
+
+    useEffect(()=>{
+        dispatch(getAllTodoTasksByUserId(currentUserId));
+    },[currentUserId])
+
     const handleAddTask = () =>{
         dispatch(addTodoTask({
             name: task,
